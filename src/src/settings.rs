@@ -1,9 +1,6 @@
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
-//use serde::{Deserialize, Serialize};
-//use serde::de::Deserialize;
-// serde = "1.0"
-use serde_json::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Settings
@@ -14,6 +11,7 @@ pub struct Settings
     m_fileName: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
 enum EmergencyAction
 {
     BlockScreen,
@@ -23,6 +21,16 @@ enum EmergencyAction
 
 impl Settings
 {
+    pub fn new(limitFrequency: u32, sensitivity: u32, emergencyActions: Vec<EmergencyAction>, fileName: String) -> Self 
+    {
+        Self {
+            m_limitFrequency: limitFrequency,
+            m_sensitivity: sensitivity,
+            m_emergencyActions: emergencyActions,
+            m_fileName: fileName.to_string(),
+        }
+    }
+
     pub fn load(&self) -> Result<Self, std::io::Error> 
     {
         let mut file = File::open(&self.m_fileName)?;

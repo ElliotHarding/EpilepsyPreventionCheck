@@ -4,7 +4,7 @@ use settings::Settings;
 fn main() {
     println!("Who Hello World!");
 
-    let mut settings = match Settings::load() 
+    /*let mut settings = match Settings::load("") 
     {
         Ok(settings) => settings,
         Err(_) => {
@@ -18,13 +18,11 @@ fn main() {
                 m_emergencyActions: [], 
             }
         }
-    };
+    };*/
 
-    // Modify settings if needed
-    // ...
-
-    // Save settings back to file
-    settings.save()?;
+    let settings = Settings::new(50, 50, [].to_vec(), "settings.json".to_string());
+    settings.save();
+    settings.load();
 
     println!("Who Hello World?");
 }
