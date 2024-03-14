@@ -12,7 +12,7 @@ pub struct Settings
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-enum EmergencyAction
+pub enum EmergencyAction
 {
     BlockScreen,
     MiniPopup,

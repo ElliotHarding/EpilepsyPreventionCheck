@@ -1,32 +1,38 @@
 mod settings;
 use settings::Settings;
 
-fn main() {
-    println!("Who Hello World!");
-
-    /*let mut settings = match Settings::load("") 
+fn screenMonitorLoop()
+{
+    let mut screenshot_count = 0;
+    loop 
     {
-        Ok(settings) => settings,
-        Err(_) => {
-            println!("Settings file not found, creating a new one...");
+      // Capture screenshot and save it with a unique filename
+      let filename = format!("screenshot_{}.png", screenshot_count);
+      Command::new("scrot")
+        .arg(&filename)
+        .output()
+        .expect("failed to capture screenshot");
+      screenshot_count += 1;
 
-            Settings 
-            {
-                m_fileName: String::from("settings.json"),
-                m_limitFrequency: 32,
-                m_sensitivity: 50,
-                m_emergencyActions: [], 
-            }
-        }
-    };*/
+        
+
+  
+      std::thread::sleep(std::time::Duration::from_secs(1));
+    }
+}
+
+fn main() 
+{
+    println!("Who Hello World!");
 
     let settings = Settings::new(50, 50, [].to_vec(), "settings.json".to_string());
     settings.save();
     settings.load();
 
+    screenMonitorLoop();
+
     println!("Who Hello World?");
 }
-
 
 
 /*
@@ -44,4 +50,7 @@ fn main() {
  Emergency screen action
 
  Emergency action steps
+
+
+  Rounding errors are the best chance.
 */
