@@ -5,37 +5,14 @@ use std::io::BufReader;
 use std::fs::File;
 use std::io::Read;
 
-/*
-use std::io::Cursor;
-use image::{open, ImageOutputFormat};
-
-fn png_to_byte_array(filename: &str) -> Result<Vec<u8>, std::io::Error> 
+fn imageFileToByteArray(filePath: String) -> Result<Vec<u8>, std::io::Error>
 {
-    // Open the PNG image
-    let img = open(filename)?;
+    println!("      imageFileToByteArray :: ...");
 
-    // Create a cursor to hold the image data in memory
-    let mut buffer = Vec::new();
-    let mut cursor = Cursor::new(&mut buffer);
-
-    // Serialize the image back to PNG format and write it to the cursor
-    img.write_to(&mut cursor, ImageOutputFormat::Png)?;
-
-    // Now "buffer" contains the image data as a byte array
-    let image_bytes = buffer.as_slice();
-  
-    Ok(image_bytes)
-
-    Explore via non errors
-}*/
-
-
-
-
-fn imageFileToByteArray(filePath: String) -> Result<Vec<u8>, std::io::Error> //Option<Vec<u8>>//Result<Vec<u8>, std::io::Error>
-{
     let file = File::open(filePath)?;
     let mut reader = BufReader::new(file);
+
+    println!("      imageFileToByteArray :: Found file");
 
     // Define a buffer to hold the read bytes
     let mut buffer = [0u8; 1024]; // Adjust buffer size as needed
@@ -59,17 +36,43 @@ fn imageFileToByteArray(filePath: String) -> Result<Vec<u8>, std::io::Error> //O
         }
     }
 
+    /*for byte in returnArray.iter() 
+    {
+        println!("imageFileToByteArray :: Value: {}", byte);
+    }*/
+
+    println!("      imageFileToByteArray :: Processed file");
     Ok(returnArray)
 }
 
 //Difference as a percentage
-fn compareVecU8s(vector1: &Vec<u8>, vector2: &Vec<u8>) -> Option<f64>
+fn compareVecU8s(mut vector1: Vec<u8>, mut vector2: Vec<u8>) -> Option<f64>
 {
-    let mut difference = 0;
-    for (i, value) in vector1.iter().enumerate() 
+    println!("      compareVecU8s        :: ");
+
+    if vector1.len() != vector2.len()
     {
-        difference += value ^ vector2[i];
+        println!("      compareVecU8s        :: Hard to comapre due to different lengths");
+        println!("      compareVecU8s        ::  Len 1: {}", vector1.len());
+        println!("      compareVecU8s        ::  Len 2: {}", vector2.len());
+
+        if vector1.len() > vector2.len()
+        {
+            vector2.extend(vec![0; vector1.len() - vector2.len()]);
+        }
+        else
+        {
+            vector1.extend(vec![0; vector2.len() - vector1.len()]);
+        }
     }
+
+    let mut difference : f64 = 0.0;
+    for (i, value) in vector1.iter().enumerate()    
+    {
+        difference += (value ^ vector2[i]) as f64;
+    }
+
+    println!("      compareVecU8s        :: difference: {}" , difference);
 
     let mut percentageDifference = ((difference as f64) / 256.0 / (vector1.len() as f64 * 100.0)) as f64;
     Some(percentageDifference)
@@ -77,36 +80,48 @@ fn compareVecU8s(vector1: &Vec<u8>, vector2: &Vec<u8>) -> Option<f64>
 
 fn screenMonitorLoop(settings: &Settings)
 {
-    let mut screenshot_count = 0;
+    println!("screenMonitorLoop    :: Starting loop");
+
+    let mut iFrame = 0;
     let mut currentByteArray: Vec<u8> = Vec::new();
     loop
     {
-      // Capture screenshot and save it with a unique filename
-      let filename = format!("screenshot_{}.png", screenshot_count);
-      Command::new("scrot")
-        .arg(&filename)
-        .output()
-        .expect("failed to capture screenshot");
-      screenshot_count += 1;
+        let filename = format!("screenshot_{}.png", iFrame);
+        let folderName = "screenshots";
 
-      let newByteArray = imageFileToByteArray(filename).ok().unwrap();
-
-      if currentByteArray.is_empty()
-      {
-        let mut percentage_difference = compareVecU8s(&currentByteArray, &newByteArray).unwrap();
-        println!("{}", percentage_difference);
-
-        //Compare with settings...
-        if (settings.m_sensitivity as f64) < percentage_difference
+        /*if !fs::exists(folderName) 
         {
-            println!("Eplilepsy");
-        }
-      }
+            fs::create_dir(folderName)?;
+        }*/
 
-      println!("Loop");
-  
-      currentByteArray = newByteArray;
-      std::thread::sleep(std::time::Duration::from_secs(settings.m_limitFrequency as u64));
+        // Build the full path for the screenshot
+        let screenShotPath = format!("{}/{}", folderName, filename);
+
+        // Execute the scrot command with arguments
+        let mut command = Command::new("scrot");
+        command.arg(&screenShotPath);
+
+        // Run the command and handle the result
+        let output = command.output().expect("failed to execute scrot");
+
+        println!("screenMonitorLoop    :: Screenshot status: {} ", output.status);
+
+        let mut newByteArray = imageFileToByteArray(screenShotPath).ok().unwrap();
+        if !currentByteArray.is_empty()
+        {
+            let mut percentage_difference = compareVecU8s(currentByteArray, newByteArray.clone()).unwrap();
+            println!("screenMonitorLoop    :: Percentage Difference {}", percentage_difference);
+
+            //Compare with settings...
+            if (settings.m_sensitivity as f64) < percentage_difference
+            {
+                println!("screenMonitorLoop    :: ##########################Eplilepsy###################################");
+            }
+        }
+
+        currentByteArray = newByteArray;
+        iFrame += 1;
+        std::thread::sleep(std::time::Duration::from_secs(settings.m_limitFrequency as u64));
     }
 }
 
