@@ -71,7 +71,7 @@ fn compareVecU8s(vector1: &Vec<u8>, vector2: &Vec<u8>) -> Option<f64>
         difference += value ^ vector2[i];
     }
 
-    let mut percentageDifference = (difference / 256 / (vector1.len() as u8 * 100)) as f64;
+    let mut percentageDifference = ((difference as f64) / 256.0 / (vector1.len() as f64 * 100.0)) as f64;
     Some(percentageDifference)
 }
 
@@ -102,6 +102,8 @@ fn screenMonitorLoop(settings: &Settings)
             println!("Eplilepsy");
         }
       }
+
+      println!("Loop");
   
       currentByteArray = newByteArray;
       std::thread::sleep(std::time::Duration::from_secs(settings.m_limitFrequency as u64));
