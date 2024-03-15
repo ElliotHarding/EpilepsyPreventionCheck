@@ -5,10 +5,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Settings
 {
-    m_limitFrequency: u32,
-    m_sensitivity: u32,
-    m_emergencyActions: Vec<EmergencyAction>,
-    m_fileName: String,
+    pub m_limitFrequency: u32,
+    pub m_sensitivity: u32,
+    pub m_emergencyActions: Vec<EmergencyAction>,
+    pub m_fileName: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
